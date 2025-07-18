@@ -23,7 +23,8 @@ const fields = [
   { key: 'email_address', label: 'Email' },
   { key: 'phone_number', label: 'Phone' },
   { key: 'address', label: 'Address' },
-  { key: 'is_active', label: 'Active' }
+  { key: 'description', label: 'Description', required: false },
+  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
 ]
 
 async function fetchClients() {

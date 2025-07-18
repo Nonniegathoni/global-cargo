@@ -22,11 +22,12 @@ const fields = [
   { key: 'ship_id', label: 'Ship ID', required: true },
   { key: 'origin_port_id', label: 'Origin Port' },
   { key: 'destination_port_id', label: 'Destination Port' },
-  { key: 'departure_date', label: 'Departure' },
-  { key: 'arrival_estimate', label: 'Est. Arrival' },
-  { key: 'actual_arrival_date', label: 'Actual Arrival' },
-  { key: 'status', label: 'Status' },
-  { key: 'is_active', label: 'Active' }
+  { key: 'departure_date', label: 'Departure', type: 'date' },
+  { key: 'arrival_estimate', label: 'Est. Arrival', type: 'date' },
+  { key: 'actual_arrival_date', label: 'Actual Arrival', type: 'date' },
+  { key: 'status', label: 'Status', type: 'radio', options: ['pending', 'in_transit', 'delivered', 'delayed'] },
+  { key: 'description', label: 'Description', required: false },
+  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
 ]
 
 async function fetchShipments() {

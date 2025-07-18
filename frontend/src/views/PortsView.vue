@@ -23,7 +23,8 @@ const fields = [
   { key: 'port_type', label: 'Type' },
   { key: 'coordinates', label: 'Coordinates' },
   { key: 'docking_capacity', label: 'Docking Capacity' },
-  { key: 'is_active', label: 'Active' }
+  { key: 'description', label: 'Description', required: false },
+  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
 ]
 
 async function fetchPorts() {

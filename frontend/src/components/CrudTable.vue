@@ -1,38 +1,51 @@
 <template>
-  <div class="crud-container">
-    <h1>{{ title }}</h1>
-    <form @submit.prevent="onSubmit" class="crud-form">
-      <template v-for="field in fields" :key="field.key">
-        <input
-          v-model="form[field.key]"
-          :placeholder="field.label"
-          :type="field.type || 'text'"
-          class="crud-input"
-          :required="field.required"
-        />
-      </template>
-      <button type="submit" class="crud-add">
-        {{ form.id ? 'Update' : 'Add' }}
-      </button>
-      <button v-if="form.id" type="button" class="crud-cancel" @click="resetForm">Cancel</button>
-    </form>
-    <table class="crud-table">
-      <thead>
-        <tr>
-          <th v-for="field in fields" :key="field.key">{{ field.label }}</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="item in items" :key="item.id">
-          <td v-for="field in fields" :key="field.key">{{ item[field.key] }}</td>
-          <td>
-            <button class="crud-edit" @click="editItem(item)">Edit</button>
-            <button class="crud-delete" @click="deleteItem(item.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="crud-flex">
+    <div class="crud-table-col">
+      <h2>{{ title }}</h2>
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th v-for="field in fields" :key="field.key">{{ field.label }}</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in items" :key="item.id">
+            <td v-for="field in fields" :key="field.key">{{ item[field.key] }}</td>
+            <td>
+              <button class="crud-edit" @click="editItem(item)">Edit</button>
+              <button class="crud-delete" @click="deleteItem(item.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="crud-form-col">
+      <h3>Insert {{ title.slice(0, -1) }}</h3>
+      <form @submit.prevent="onSubmit" class="crud-form">
+        <div v-for="field in fields.filter(f => f.key !== 'id')" :key="field.key" class="form-group">
+          <label :for="field.key">{{ field.label }}</label>
+          <template v-if="field.type === 'radio' && field.options">
+            <div class="radio-group">
+              <label v-for="opt in field.options" :key="opt">
+                <input type="radio" :name="field.key" :value="opt" v-model="form[field.key]" />
+                {{ opt }}
+              </label>
+            </div>
+          </template>
+          <template v-else-if="field.type === 'date'">
+            <input :id="field.key" v-model="form[field.key]" type="date" class="crud-input" :required="field.required" />
+          </template>
+          <template v-else>
+            <input :id="field.key" v-model="form[field.key]" :type="field.type || 'text'" class="crud-input" :required="field.required" :placeholder="field.label" />
+          </template>
+        </div>
+        <button type="submit" class="crud-add">
+          {{ form.id ? 'Update' : 'Insert ' + title.slice(0, -1) }}
+        </button>
+        <button v-if="form.id" type="button" class="crud-cancel" @click="resetForm">Cancel</button>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -41,7 +54,7 @@ import { ref, watch } from 'vue'
 
 const props = defineProps<{
   title: string,
-  fields: Array<{ key: string, label: string, required?: boolean, type?: string }>,
+  fields: Array<{ key: string, label: string, required?: boolean, type?: string, options?: string[] }>,
   items: any[],
   onAdd: (data: any) => Promise<void>,
   onEdit: (data: any) => Promise<void>,
@@ -79,53 +92,24 @@ function resetForm() {
 </script>
 
 <style scoped>
-.crud-container {
-  max-width: 700px;
-  margin: 2rem auto;
-  background: #f6f0fa;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 2px 8px #d1c4e9;
-}
-h1 {
-  text-align: center;
-  color: #3f51b5;
-  margin-bottom: 1.5rem;
-}
-.crud-form {
+.crud-flex {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: 2rem;
+  align-items: flex-start;
   justify-content: center;
+  flex-wrap: wrap;
 }
-.crud-input {
+.crud-table-col {
+  flex: 2;
+  min-width: 350px;
+}
+.crud-form-col {
   flex: 1;
-  padding: 0.5rem;
-  border: 1px solid #b39ddb;
-  border-radius: 8px;
-  font-size: 1rem;
-}
-.crud-add {
-  background: #3f51b5;
-  color: #fff;
-  border: none;
-  padding: 0 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.crud-add:hover {
-  background: #5c6bc0;
-}
-.crud-cancel {
-  background: #b39ddb;
-  color: #fff;
-  border: none;
-  padding: 0 1rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
+  min-width: 300px;
+  background: #f6f0fa;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  box-shadow: 0 2px 8px #d1c4e9;
 }
 .crud-table {
   width: 100%;
@@ -145,9 +129,9 @@ h1 {
   font-weight: 600;
 }
 .crud-edit {
-  background: #ede7f6;
-  color: #3f51b5;
-  border: 1px solid #b39ddb;
+  background: #9575cd;
+  color: #fff;
+  border: none;
   border-radius: 6px;
   padding: 0.3rem 1rem;
   margin-right: 0.5rem;
@@ -155,7 +139,7 @@ h1 {
   transition: background 0.2s;
 }
 .crud-edit:hover {
-  background: #d1c4e9;
+  background: #7e57c2;
 }
 .crud-delete {
   background: #e57373;
@@ -168,5 +152,60 @@ h1 {
 }
 .crud-delete:hover {
   background: #c62828;
+}
+.crud-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.crud-input {
+  padding: 0.5rem;
+  border: 1px solid #b39ddb;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+.crud-add {
+  background: #3f51b5;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+.crud-add:hover {
+  background: #5c6bc0;
+}
+.crud-cancel {
+  background: #b39ddb;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.radio-group {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .crud-flex {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .crud-form-col, .crud-table-col {
+    min-width: 0;
+    width: 100%;
+  }
 }
 </style> 

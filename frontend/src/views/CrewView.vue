@@ -19,11 +19,12 @@ const fields = [
   { key: 'id', label: 'ID' },
   { key: 'first_name', label: 'First Name', required: true },
   { key: 'last_name', label: 'Last Name', required: true },
-  { key: 'role', label: 'Role' },
+  { key: 'role', label: 'Role', type: 'radio', options: ['Captain', 'Chief Officer', 'Able Seaman', 'Ordinary Seaman', 'Engine Cadet', 'Radio Officer', 'Chief Cook', 'Steward', 'Deckhand'] },
   { key: 'phone_number', label: 'Phone' },
   { key: 'ship_id', label: 'Ship ID' },
   { key: 'nationality', label: 'Nationality' },
-  { key: 'is_active', label: 'Active' }
+  { key: 'description', label: 'Description', required: false },
+  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
 ]
 
 async function fetchCrew() {

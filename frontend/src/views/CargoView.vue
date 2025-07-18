@@ -22,8 +22,8 @@ const fields = [
   { key: 'weight', label: 'Weight' },
   { key: 'volume', label: 'Volume' },
   { key: 'client_id', label: 'Client ID' },
-  { key: 'cargo_type', label: 'Type' },
-  { key: 'is_active', label: 'Active' }
+  { key: 'cargo_type', label: 'Type', type: 'radio', options: ['perishable', 'dangerous', 'general', 'other'] },
+  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
 ]
 
 async function fetchCargo() {
