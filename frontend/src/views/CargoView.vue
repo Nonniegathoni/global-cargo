@@ -14,16 +14,27 @@
 import { ref, onMounted } from 'vue'
 import CrudTable from '../components/CrudTable.vue'
 import { getCargo, createCargo, updateCargo, deleteCargo } from '../api/cargo'
+import { normalizeBoolean } from '../utils/normalize'
 
-const cargo = ref([])
+// Define the Cargo type
+interface Cargo {
+  id?: number;
+  description: string;
+  weight?: number;
+  volume?: number;
+  client_id?: number;
+  cargo_type: string;
+  is_active: boolean | string | number;
+}
+
+const cargo = ref<Cargo[]>([])
 const fields = [
   { key: 'id', label: 'ID' },
   { key: 'description', label: 'Description', required: true },
   { key: 'weight', label: 'Weight' },
   { key: 'volume', label: 'Volume' },
   { key: 'client_id', label: 'Client ID' },
-  { key: 'cargo_type', label: 'Type', type: 'radio', options: ['perishable', 'dangerous', 'general', 'other'] },
-  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
+  { key: 'type', label: 'Type', options: ['perishable', 'dangerous', 'general', 'other'] }
 ]
 
 async function fetchCargo() {
@@ -31,15 +42,29 @@ async function fetchCargo() {
 }
 onMounted(fetchCargo)
 
-async function handleAdd(data) {
-  await createCargo(data)
+async function handleAdd(data: Cargo) {
+  const normalized = {
+    ...data,
+    is_active: normalizeBoolean(data.is_active),
+    weight: data.weight !== undefined ? Number(data.weight) : undefined,
+    volume: data.volume !== undefined ? Number(data.volume) : undefined,
+    client_id: data.client_id !== undefined ? Number(data.client_id) : undefined,
+  }
+  await createCargo(normalized)
   await fetchCargo()
 }
-async function handleEdit(data) {
-  await updateCargo(data.id, data)
+async function handleEdit(data: Cargo) {
+  const normalized = {
+    ...data,
+    is_active: normalizeBoolean(data.is_active),
+    weight: data.weight !== undefined ? Number(data.weight) : undefined,
+    volume: data.volume !== undefined ? Number(data.volume) : undefined,
+    client_id: data.client_id !== undefined ? Number(data.client_id) : undefined,
+  }
+  await updateCargo(data.id!, normalized)
   await fetchCargo()
 }
-async function handleDelete(id) {
+async function handleDelete(id: number) {
   await deleteCargo(id)
   await fetchCargo()
 }

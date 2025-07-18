@@ -1,31 +1,21 @@
 <template>
-  <div class="crud-flex">
-    <div class="crud-table-col">
-      <h2>{{ title }}</h2>
-      <table class="crud-table">
-        <thead>
-          <tr>
-            <th v-for="field in fields" :key="field.key">{{ field.label }}</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in items" :key="item.id">
-            <td v-for="field in fields" :key="field.key">{{ item[field.key] }}</td>
-            <td>
-              <button class="crud-edit" @click="editItem(item)">Edit</button>
-              <button class="crud-delete" @click="deleteItem(item.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="crud-form-col">
-      <h3>Insert {{ title.slice(0, -1) }}</h3>
+  <div class="crud-table-wrapper">
+    <div class="crud-form-card">
       <form @submit.prevent="onSubmit" class="crud-form">
         <div v-for="field in fields.filter(f => f.key !== 'id')" :key="field.key" class="form-group">
           <label :for="field.key">{{ field.label }}</label>
-          <template v-if="field.type === 'radio' && field.options">
+          <template v-if="field.key === 'is_active'">
+            <div class="is-active-group">
+              <button type="button" :class="['is-active-btn', form.is_active === true ? 'active' : '']" @click="form.is_active = true">Active</button>
+              <button type="button" :class="['is-active-btn', form.is_active === false ? 'inactive' : '']" @click="form.is_active = false">Inactive</button>
+            </div>
+          </template>
+          <template v-else-if="field.options && field.type !== 'radio'">
+            <select :id="field.key" v-model="form[field.key]" class="crud-input">
+              <option v-for="opt in field.options" :key="opt" :value="opt">{{ opt }}</option>
+            </select>
+          </template>
+          <template v-else-if="field.type === 'radio' && field.options && field.key !== 'is_active'">
             <div class="radio-group">
               <label v-for="opt in field.options" :key="opt">
                 <input type="radio" :name="field.key" :value="opt" v-model="form[field.key]" />
@@ -40,17 +30,40 @@
             <input :id="field.key" v-model="form[field.key]" :type="field.type || 'text'" class="crud-input" :required="field.required" :placeholder="field.label" />
           </template>
         </div>
-        <button type="submit" class="crud-add">
-          {{ form.id ? 'Update' : 'Insert ' + title.slice(0, -1) }}
-        </button>
-        <button v-if="form.id" type="button" class="crud-cancel" @click="resetForm">Cancel</button>
+        <div class="form-actions">
+          <button type="submit" class="crud-add">
+            {{ form.id ? 'Update' : 'Insert ' + singularTitle }}
+          </button>
+          <button v-if="form.id" type="button" class="crud-cancel" @click="resetForm">Cancel</button>
+          <button type="button" class="crud-fake" @click="fakeFill">Fake Fill</button>
+        </div>
       </form>
+    </div>
+    <div class="crud-table-card">
+      <table class="crud-table">
+        <thead>
+          <tr>
+            <th v-for="field in fields" :key="field.key">{{ field.label }}</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="item in items" :key="item.id">
+            <td v-for="field in fields" :key="field.key">{{ item[field.key] }}</td>
+            <td>
+              <button class="edit-btn" @click="editItem(item)">Edit</button>
+              <button class="delete-btn" @click="deleteItem(item.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { faker } from '@faker-js/faker'
 
 const props = defineProps<{
   title: string,
@@ -65,6 +78,8 @@ const emit = defineEmits(['refresh'])
 
 const form = ref<any>({})
 watch(() => props.fields, () => resetForm(), { immediate: true })
+
+const singularTitle = props.title.endsWith('s') ? props.title.slice(0, -1) : props.title;
 
 function onSubmit() {
   if (form.value.id) {
@@ -89,123 +104,185 @@ function deleteItem(id: number) {
 function resetForm() {
   form.value = {}
 }
+function fakeFill() {
+  const fake: any = {}
+  for (const field of props.fields) {
+    if (field.key === 'id') continue
+    if (field.key === 'is_active') {
+      fake[field.key] = true
+    } else if (field.options && field.type !== 'radio') {
+      fake[field.key] = field.options[0]
+    } else if (field.type === 'radio' && field.options && field.key !== 'is_active') {
+      fake[field.key] = field.options[0]
+    } else if (field.type === 'date') {
+      fake[field.key] = faker.date.recent().toISOString().slice(0, 10)
+    } else if (field.type === 'number') {
+      fake[field.key] = faker.number.int({ min: 1, max: 999 })
+    } else {
+      // Guess by label
+      const label = field.label.toLowerCase()
+      if (label.includes('name')) fake[field.key] = faker.person.fullName()
+      else if (label.includes('email')) fake[field.key] = faker.internet.email()
+      else if (label.includes('phone')) fake[field.key] = faker.phone.number()
+      else if (label.includes('address')) fake[field.key] = faker.location.streetAddress()
+      else if (label.includes('description')) fake[field.key] = faker.lorem.sentence()
+      else if (label.includes('registration')) fake[field.key] = faker.string.numeric(6)
+      else if (label.includes('capacity')) fake[field.key] = faker.number.int({ min: 10, max: 200 })
+      else if (label.includes('nationality')) fake[field.key] = faker.location.country()
+      else fake[field.key] = faker.word.words(2)
+    }
+  }
+  form.value = fake
+}
 </script>
 
 <style scoped>
-.crud-flex {
+.crud-table-wrapper {
   display: flex;
+  flex-direction: column;
   gap: 2rem;
-  align-items: flex-start;
-  justify-content: center;
-  flex-wrap: wrap;
 }
-.crud-table-col {
-  flex: 2;
-  min-width: 350px;
-}
-.crud-form-col {
-  flex: 1;
-  min-width: 300px;
-  background: #f6f0fa;
-  border-radius: 12px;
-  padding: 1.5rem 1rem;
-  box-shadow: 0 2px 8px #d1c4e9;
-}
-.crud-table {
-  width: 100%;
-  border-collapse: collapse;
+.crud-form-card {
   background: #fff;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 1px 4px #d1c4e9;
-}
-.crud-table th, .crud-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-}
-.crud-table th {
-  background: #ede7f6;
-  color: #3f51b5;
-  font-weight: 600;
-}
-.crud-edit {
-  background: #9575cd;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.3rem 1rem;
-  margin-right: 0.5rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.crud-edit:hover {
-  background: #7e57c2;
-}
-.crud-delete {
-  background: #e57373;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  padding: 0.3rem 1rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.crud-delete:hover {
-  background: #c62828;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(59,89,152,0.07);
+  padding: 2rem 2.5rem 1.5rem 2.5rem;
+  margin-bottom: 0.5rem;
 }
 .crud-form {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 1.5rem 2rem;
 }
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  flex: 1 1 220px;
+  min-width: 180px;
+  margin-bottom: 1rem;
+}
+label {
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+  color: #3b5998;
 }
 .crud-input {
-  padding: 0.5rem;
-  border: 1px solid #b39ddb;
-  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid #c7d0e6;
+  border-radius: 5px;
   font-size: 1rem;
+  background: #f7f8fa;
 }
-.crud-add {
-  background: #3f51b5;
-  color: #fff;
+.is-active-group {
+  display: flex;
+  gap: 1.2rem;
+  margin-top: 0.2rem;
+}
+.is-active-btn {
+  background: #e3e8f7;
+  color: #3b5998;
   border: none;
-  padding: 0.5rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 5px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
-  margin-top: 0.5rem;
+  transition: background 0.15s, color 0.15s;
 }
-.crud-add:hover {
-  background: #5c6bc0;
-}
-.crud-cancel {
-  background: #b39ddb;
+.is-active-btn.active {
+  background: #3b5998;
   color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 0.5rem;
+}
+.is-active-btn.inactive {
+  background: #a18fff;
+  color: #fff;
 }
 .radio-group {
   display: flex;
-  gap: 1rem;
-  align-items: center;
+  gap: 1.2rem;
+  margin-top: 0.2rem;
 }
-@media (max-width: 900px) {
-  .crud-flex {
-    flex-direction: column;
-    gap: 1rem;
-  }
-  .crud-form-col, .crud-table-col {
-    min-width: 0;
-    width: 100%;
-  }
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+.crud-add {
+  background: #3b5998;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.crud-add:hover {
+  background: #4e5ba6;
+}
+.crud-cancel {
+  background: #e3e8f7;
+  color: #3b5998;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.crud-fake {
+  background: #a18fff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.crud-table-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(59,89,152,0.07);
+  padding: 2rem 2.5rem 1.5rem 2.5rem;
+}
+.crud-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+.crud-table th, .crud-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid #e3e8f7;
+  text-align: left;
+}
+.crud-table th {
+  background: #f7f8fa;
+  color: #3b5998;
+  font-weight: 600;
+}
+.edit-btn {
+  background: #a18fff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.3rem 0.9rem;
+  margin-right: 0.5rem;
+  font-size: 0.98rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.edit-btn:hover {
+  background: #8c6cff;
+}
+.delete-btn {
+  background: #3b5998;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.3rem 0.9rem;
+  font-size: 0.98rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.delete-btn:hover {
+  background: #22306b;
 }
 </style> 

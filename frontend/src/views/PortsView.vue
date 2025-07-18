@@ -14,8 +14,21 @@
 import { ref, onMounted } from 'vue'
 import CrudTable from '../components/CrudTable.vue'
 import { getPorts, createPort, updatePort, deletePort } from '../api/ports'
+import { normalizeBoolean } from '../utils/normalize'
 
-const ports = ref([])
+// Define the Port type
+interface Port {
+  id?: number;
+  name: string;
+  country?: string;
+  port_type?: string;
+  coordinates?: string;
+  docking_capacity?: number;
+  description?: string;
+  is_active: boolean | string | number;
+}
+
+const ports = ref<Port[]>([])
 const fields = [
   { key: 'id', label: 'ID' },
   { key: 'name', label: 'Name', required: true },
@@ -23,8 +36,7 @@ const fields = [
   { key: 'port_type', label: 'Type' },
   { key: 'coordinates', label: 'Coordinates' },
   { key: 'docking_capacity', label: 'Docking Capacity' },
-  { key: 'description', label: 'Description', required: false },
-  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
+  { key: 'description', label: 'Description', required: false }
 ]
 
 async function fetchPorts() {
@@ -32,15 +44,25 @@ async function fetchPorts() {
 }
 onMounted(fetchPorts)
 
-async function handleAdd(data) {
-  await createPort(data)
+async function handleAdd(data: Port) {
+  const normalized = {
+    ...data,
+    is_active: normalizeBoolean(data.is_active),
+    docking_capacity: data.docking_capacity !== undefined ? Number(data.docking_capacity) : undefined,
+  }
+  await createPort(normalized)
   await fetchPorts()
 }
-async function handleEdit(data) {
-  await updatePort(data.id, data)
+async function handleEdit(data: Port) {
+  const normalized = {
+    ...data,
+    is_active: normalizeBoolean(data.is_active),
+    docking_capacity: data.docking_capacity !== undefined ? Number(data.docking_capacity) : undefined,
+  }
+  await updatePort(data.id!, normalized)
   await fetchPorts()
 }
-async function handleDelete(id) {
+async function handleDelete(id: number) {
   await deletePort(id)
   await fetchPorts()
 }

@@ -13,18 +13,31 @@
 import { ref, onMounted } from 'vue'
 import CrudTable from '../components/CrudTable.vue'
 import { getCrew, createCrew, updateCrew, deleteCrew } from '../api/crew'
+import { normalizeBoolean } from '../utils/normalize'
 
-const crew = ref([])
+// Define the Crew type
+interface Crew {
+  id?: number;
+  first_name: string;
+  last_name: string;
+  role: string;
+  phone_number?: string;
+  ship_id?: number;
+  nationality?: string;
+  description?: string;
+  is_active: boolean | string | number;
+}
+
+const crew = ref<Crew[]>([])
 const fields = [
   { key: 'id', label: 'ID' },
   { key: 'first_name', label: 'First Name', required: true },
   { key: 'last_name', label: 'Last Name', required: true },
-  { key: 'role', label: 'Role', type: 'radio', options: ['Captain', 'Chief Officer', 'Able Seaman', 'Ordinary Seaman', 'Engine Cadet', 'Radio Officer', 'Chief Cook', 'Steward', 'Deckhand'] },
+  { key: 'role', label: 'Role', options: ['Captain', 'Chief Officer', 'Able Seaman', 'Ordinary Seaman', 'Engine Cadet', 'Radio Officer', 'Chief Cook', 'Steward', 'Deckhand'] },
   { key: 'phone_number', label: 'Phone' },
   { key: 'ship_id', label: 'Ship ID' },
   { key: 'nationality', label: 'Nationality' },
-  { key: 'description', label: 'Description', required: false },
-  { key: 'is_active', label: 'Active', type: 'radio', options: ['true', 'false'] }
+  { key: 'description', label: 'Description', required: false }
 ]
 
 async function fetchCrew() {
@@ -32,15 +45,25 @@ async function fetchCrew() {
 }
 onMounted(fetchCrew)
 
-async function handleAdd(data) {
-  await createCrew(data)
+async function handleAdd(data: Crew) {
+  const normalized = {
+    ...data,
+    is_active: normalizeBoolean(data.is_active),
+    ship_id: data.ship_id !== undefined ? Number(data.ship_id) : undefined,
+  }
+  await createCrew(normalized)
   await fetchCrew()
 }
-async function handleEdit(data) {
-  await updateCrew(data.id, data)
+async function handleEdit(data: Crew) {
+  const normalized = {
+    ...data,
+    is_active: normalizeBoolean(data.is_active),
+    ship_id: data.ship_id !== undefined ? Number(data.ship_id) : undefined,
+  }
+  await updateCrew(data.id!, normalized)
   await fetchCrew()
 }
-async function handleDelete(id) {
+async function handleDelete(id: number) {
   await deleteCrew(id)
   await fetchCrew()
 }

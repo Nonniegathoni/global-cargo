@@ -1,36 +1,32 @@
 <?php
-
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
-    /**
-     * Run the migrations.
-     */
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('shipments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cargo_id')->nullable()->constrained('cargo')->nullOnDelete();
-            $table->foreignId('ship_id')->nullable()->constrained('ships')->nullOnDelete();
-            $table->foreignId('origin_port_id')->nullable()->constrained('ports')->nullOnDelete();
-            $table->foreignId('destination_port_id')->nullable()->constrained('ports')->nullOnDelete();
+            $table->unsignedBigInteger('cargo_id');
+            $table->unsignedBigInteger('ship_id');
+            $table->unsignedBigInteger('origin_port_id')->nullable();
+            $table->unsignedBigInteger('destination_port_id')->nullable();
             $table->date('departure_date')->nullable();
             $table->date('arrival_estimate')->nullable();
             $table->date('actual_arrival_date')->nullable();
             $table->enum('status', ['pending', 'in_transit', 'delivered', 'delayed'])->default('pending');
+            $table->text('description')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->foreign('cargo_id')->references('id')->on('cargo')->onDelete('cascade');
+            $table->foreign('ship_id')->references('id')->on('ships')->onDelete('cascade');
+            $table->foreign('origin_port_id')->references('id')->on('ports')->onDelete('set null');
+            $table->foreign('destination_port_id')->references('id')->on('ports')->onDelete('set null');
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('shipments');
     }
-};
+}; 
