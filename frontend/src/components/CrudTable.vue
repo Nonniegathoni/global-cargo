@@ -138,6 +138,29 @@ function fakeFill() {
 
 <style scoped>
 .crud-table-wrapper {
+  background: var(--main-bg);
+  color: var(--main-text);
+}
+.crud-form-card, .crud-table-card {
+  background: var(--card-bg);
+  color: var(--main-text);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.crud-input, select {
+  background: var(--main-bg);
+  color: var(--main-text);
+  border: 1px solid var(--border);
+}
+.crud-add, .crud-cancel, .crud-fake, .edit-btn, .delete-btn {
+  color: var(--main-text);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+.crud-add:hover, .crud-cancel:hover, .crud-fake:hover, .edit-btn:hover, .delete-btn:hover {
+  background: var(--main-bg);
+}
+.crud-table-wrapper {
   display: flex;
   flex-direction: column;
   gap: 2rem;

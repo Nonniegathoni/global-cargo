@@ -39,7 +39,7 @@
   const emit = defineEmits(['submit', 'cancel']);
   const form = reactive({ ...props.modelValue });
   watch(() => props.modelValue, (val) => Object.assign(form, val));
-  function onSubmit() { emit('submit', { ...form }); }
+  function onSubmit() { emit('submit', { ...form, is_active: true }); }
   </script>
 
 

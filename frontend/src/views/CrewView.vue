@@ -37,7 +37,8 @@ const fields = [
   { key: 'phone_number', label: 'Phone' },
   { key: 'ship_id', label: 'Ship ID' },
   { key: 'nationality', label: 'Nationality' },
-  { key: 'description', label: 'Description', required: false }
+  { key: 'description', label: 'Description', required: false },
+  { key: 'is_active', label: 'Active', required: true },
 ]
 
 async function fetchCrew() {

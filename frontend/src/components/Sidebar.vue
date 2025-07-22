@@ -33,13 +33,12 @@
 
 <style scoped>
 .sidebar {
-  width: 240px;
-  background: #3b5998;
-  color: #fff;
+  width: 220px;
+  background: var(--card-bg);
+  color: var(--main-text);
+  border-right: 1px solid var(--border);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.04);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.03);
 }
 .sidebar-header {
   padding: 2rem 1.5rem 1rem 1.5rem;
@@ -64,7 +63,7 @@
   display: flex;
   align-items: center;
   padding: 0.85rem 1.5rem;
-  color: #e3e8f7;
+  color: var(--main-text);
   text-decoration: none;
   font-size: 1.08rem;
   border-left: 4px solid transparent;

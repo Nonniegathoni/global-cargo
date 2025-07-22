@@ -42,7 +42,8 @@ const fields = [
   { key: 'arrival_estimate', label: 'Est. Arrival', type: 'date' },
   { key: 'actual_arrival_date', label: 'Actual Arrival', type: 'date' },
   { key: 'status', label: 'Status', options: ['pending', 'in_transit', 'delivered', 'delayed'] },
-  { key: 'description', label: 'Description', required: false }
+  { key: 'description', label: 'Description', required: false },
+  { key: 'is_active', label: 'Active', required: true },
 ]
 
 async function fetchShipments() {
